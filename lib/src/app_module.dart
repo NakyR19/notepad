@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pages/note_list_page.dart';
+import 'screens/note_grid_screen.dart';
 import 'utils/color_schemes.dart';
 
 class NotepadApp extends StatelessWidget {
@@ -35,7 +35,7 @@ class NotepadApp extends StatelessWidget {
         ),
       ),
       routes: {
-        "/": (context) => const NoteListPage(),
+        "/": (context) => const NoteListScreen(),
       },
     );
   }
