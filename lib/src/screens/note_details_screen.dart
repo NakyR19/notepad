@@ -20,11 +20,13 @@ class _NoteDetailsScreenState extends State<NoteDetailsScreen> {
     final contentController = TextEditingController();
     String dateAt = DateFormat("dd/MM/yyyy").format(DateTime.now());
 
+    // check if the note exists, if it does, it fills in the fields with the note data.
     if (widget.note != null) {
       titleController.text = widget.note!.title;
       contentController.text = widget.note!.content;
     }
 
+    // Function to save the note, if it doesn't exist, it creates a new note, if it does exist, it updates the note.
     save() async {
       final title = titleController.value.text;
       final content = contentController.value.text;
@@ -40,6 +42,7 @@ class _NoteDetailsScreenState extends State<NoteDetailsScreen> {
       } else {
         await DatabaseHelper.updateNote(model);
       }
+
       Fluttertoast.showToast(
         msg: "Nota salva com sucesso!",
         toastLength: Toast.LENGTH_SHORT,
@@ -51,6 +54,7 @@ class _NoteDetailsScreenState extends State<NoteDetailsScreen> {
       );
     }
 
+    // Customized AppBar
     final PreferredSizeWidget appBar = AppBar(
       backgroundColor: Theme.of(context).colorScheme.background,
       elevation: 5,
@@ -58,24 +62,80 @@ class _NoteDetailsScreenState extends State<NoteDetailsScreen> {
       title: Text(widget.note == null ? 'Nova nota' : 'Editar nota'),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () {
-          save;
-          Navigator.pop(context);
+        onPressed: () async {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(
+                'Você quer sair?',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+              ),
+              content: Text('Você não salvou a nota. Você realmente quer sair?',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onBackground,
+                  )),
+              actions: [
+                TextButton(
+                  child: const Text('Não'),
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
+                TextButton(
+                  child: const Text('Sim'),
+                  onPressed: () => Navigator.of(context).pop(true),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );
+
     final Size size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      appBar: appBar,
-      body: noteModify(size, titleController, context, contentController),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          save();
-          Navigator.popAndPushNamed(context, "/");
-        },
-        tooltip: 'Salvar',
-        child: const Icon(Icons.save),
+    return WillPopScope(
+      onWillPop: () async {
+        final shouldPop = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(
+              "Você quer sair?",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
+            ),
+            content: Text(
+              'Você não salvou a nota. Você realmente quer sair?',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Não'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: const Text('Sim'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        );
+        return shouldPop ?? false;
+      },
+      child: Scaffold(
+        appBar: appBar,
+        body: noteModify(size, titleController, context, contentController),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            save();
+            Navigator.popAndPushNamed(context, "/");
+          },
+          tooltip: 'Salvar',
+          child: const Icon(Icons.save),
+        ),
       ),
     );
   }
